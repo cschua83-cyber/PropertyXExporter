@@ -3,6 +3,7 @@ import re
 import time
 
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
@@ -55,6 +56,19 @@ def scan_units(driver):
 
     for button in buttons:
 
+        classes = button.get_attribute("class") or ""
+        if "C1-06-05" in button.text or "C1-06-01" in button.text:
+            print(button.text)
+            print(classes)
+            
+        # 已售直接跳过
+        if "unavailable" in classes:
+            continue
+        
+        # 没有 available 也跳过
+        if "available" not in classes:
+            continue
+        
         text = button.text.strip()
 
         if not text:
@@ -111,6 +125,11 @@ def load_details(driver, unit):
         button
     )
 
+    print("Active Element:")
+    print(driver.execute_script(
+        "return document.activeElement.outerHTML"
+))
+
     time.sleep(2)
     
     old = ""
@@ -125,7 +144,10 @@ def load_details(driver, unit):
 
     print("点击前：", button.text)
         
-    button.click()
+    driver.execute_script(
+       "arguments[0].click();",
+       button
+   )
     
     time.sleep(1)
     
@@ -164,7 +186,22 @@ def load_details(driver, unit):
     print("=" * 80)
     print()
 
-    detail = read_details(driver)
+    # ==========================================================
+    # 等待 Detail 完全加载（最多重试 5 次）
+    # ==========================================================
+    detail = {}
+
+    for attempt in range(5):
+
+        detail = read_details(driver)
+
+        # 正常都会有约 8 个字段
+        if len(detail) >= 7:
+                break
+
+        print(f"Detail 尚未加载完成，等待中... ({attempt+1}/5)")
+
+        time.sleep(0.5)
 
     print("\n" + "=" * 70)
     print(f"读取：{unit.unit}")
@@ -189,12 +226,38 @@ def load_details(driver, unit):
     m = re.search(r"(\d+)\s*Bedroom", type_text, re.I)
     if m:
         unit.bedroom = m.group(1)
+        
+    # ==========================================================
+    # 关闭 Detail Dialog（ESC）
+    # ==========================================================
+    driver.find_element(
+        By.TAG_NAME,
+        "body"
+    ).send_keys(Keys.ESCAPE)
+    
+    WebDriverWait(driver, 10).until(
+    EC.invisibility_of_element_located(
+        (By.CLASS_NAME, "cdk-overlay-backdrop")
+    )
+)
+
+    time.sleep(1.5)
+
+    print("Dialog 已关闭")
+
+    WebDriverWait(driver, 5).until(
+        EC.invisibility_of_element_located(
+            (By.CLASS_NAME, "cdk-overlay-backdrop")
+        )
+    )
+
+    time.sleep(0.3)
 
     m = re.search(r"(\d+)\s*Bathroom", type_text, re.I)
     if m:
         unit.bathroom = m.group(1)
-
-
+    
+    
 def get_units(browser):
     """
     主流程
@@ -211,7 +274,7 @@ def get_units(browser):
     print(f"发现 {len(units)} 个 Unit")
 
     # 测试只抓第一间，验证成功后改成 units
-    for i, unit in enumerate(units[4:5]):
+    for i, unit in enumerate(units):
 
         print(f"[{i+1}/{len(units)}] {unit.unit}")
 
