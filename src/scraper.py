@@ -111,6 +111,8 @@ def load_details(driver, unit):
         button
     )
 
+    time.sleep(2)
+    
     old = ""
 
     try:
@@ -121,10 +123,14 @@ def load_details(driver, unit):
     except Exception:
         pass
 
-    driver.execute_script(
-        "arguments[0].click();",
-        button
-    )
+    print("点击前：", button.text)
+        
+    button.click()
+    
+    time.sleep(1)
+    
+    print("点击后：", button.text)    
+   
 
     try:
         WebDriverWait(driver, 10).until(
@@ -137,35 +143,34 @@ def load_details(driver, unit):
         pass
 
     print()
-print("=" * 80)
-print("DEBUG")
+    print("=" * 80)
+    print("DEBUG")
 
-print(
-    "content-wrapper :",
-    len(driver.find_elements(By.CLASS_NAME, "content-wrapper"))
-)
+    print(
+        "content-wrapper :",
+        len(driver.find_elements(By.CLASS_NAME, "content-wrapper"))
+    )
 
-print(
-    "label-f :",
-    len(driver.find_elements(By.CLASS_NAME, "label-f"))
-)
+    print(
+        "label-f :",
+        len(driver.find_elements(By.CLASS_NAME, "label-f"))
+    )
 
-print(
-    "value-f :",
-    len(driver.find_elements(By.CLASS_NAME, "value-f"))
-)
+    print(
+        "value-f :",
+        len(driver.find_elements(By.CLASS_NAME, "value-f"))
+    )
 
-print("=" * 80)
-print()
+    print("=" * 80)
+    print()
 
-detail = read_details(driver)
+    detail = read_details(driver)
 
-print("\n" + "=" * 70)
-print(f"读取：{unit.unit}")
-print("=" * 70)
+    print("\n" + "=" * 70)
+    print(f"读取：{unit.unit}")
+    print("=" * 70)
 
-if not detail:
-    print("没有读取到 Detail")
+    if not detail:
         print("没有读取到 Detail")
     else:
         for k, v in detail.items():
@@ -206,7 +211,7 @@ def get_units(browser):
     print(f"发现 {len(units)} 个 Unit")
 
     # 测试只抓第一间，验证成功后改成 units
-    for i, unit in enumerate(units[:1]):
+    for i, unit in enumerate(units[4:5]):
 
         print(f"[{i+1}/{len(units)}] {unit.unit}")
 
