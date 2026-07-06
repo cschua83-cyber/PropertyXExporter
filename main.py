@@ -1,11 +1,10 @@
 from src.browser import get_browser
-from src.scraper import get_units
-from src.exporter import export_to_excel
 
 browser = get_browser()
 
-units = get_units(browser)
+driver = browser.get_driver()
 
-export_to_excel(units)
+print(driver.title)
+print(driver.current_url)
 
 input("Press Enter...")
