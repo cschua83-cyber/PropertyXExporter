@@ -43,15 +43,17 @@ class Browser:
             
             print("-" * 60)
 
-            if "sales.property-x.asia" in self.driver.current_url.lower():
+            url = self.driver.current_url.lower()
+
+            if (
+                "workdesk.property-x.asia" in url
+                or "sales.property-x.asia" in url
+):
 
                 print("✅ PropertyX tab found!")
 
                 return True
-
-        print("❌ PropertyX tab not found!")
-
-        return False
+            
     
     def get_driver(self):
         return self.driver

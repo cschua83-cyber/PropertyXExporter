@@ -9,6 +9,9 @@ from selenium.webdriver.support import expected_conditions as EC
 
 from src.models import Unit
 
+UNIT_PATTERN = re.compile(
+    r"^[A-Z]\d(?:-\d+)?-\d{2}-\d{2}$"
+)
 
 def read_details(driver):
     """
@@ -37,19 +40,12 @@ def read_details(driver):
     return data
 
 
-def scan_units(driver):
+def scan_units(driver, phase, block):
 
     buttons = driver.find_elements(
         By.TAG_NAME,
         "button"
     )
-
-    print(f"找到 Button 数量：{len(buttons)}")
-
-    for i, b in enumerate(buttons[:20]):
-        print("-----")
-        print(i)
-        print(repr(b.text))
 
     units = []
     current_level = ""
@@ -57,10 +53,7 @@ def scan_units(driver):
     for button in buttons:
 
         classes = button.get_attribute("class") or ""
-        if "C1-06-05" in button.text or "C1-06-01" in button.text:
-            print(button.text)
-            print(classes)
-            
+                   
         # 已售直接跳过
         if "unavailable" in classes:
             continue
@@ -82,14 +75,17 @@ def scan_units(driver):
             current_level = first
             continue
 
-        # 非 Unit
-        if not first.startswith("C1-"):
+        UNIT_PATTERN = re.compile(
+            r"^[A-Z]\d(?:-\d+)?-\d{2}-\d{2}$"
+)
+
+        if not UNIT_PATTERN.match(first):
             continue
 
         u = Unit()
 
-        u.phase = "3A"
-        u.block = "C1"
+        u.phase = phase
+        u.block = block
         u.level = current_level
         u.unit = first
 
@@ -125,10 +121,6 @@ def load_details(driver, unit):
         button
     )
 
-    print("Active Element:")
-    print(driver.execute_script(
-        "return document.activeElement.outerHTML"
-))
 
     time.sleep(2)
     
@@ -141,8 +133,7 @@ def load_details(driver, unit):
         ).text
     except Exception:
         pass
-
-    print("点击前：", button.text)
+    
         
     driver.execute_script(
        "arguments[0].click();",
@@ -151,7 +142,6 @@ def load_details(driver, unit):
     
     time.sleep(1)
     
-    print("点击后：", button.text)    
    
 
     try:
@@ -164,27 +154,6 @@ def load_details(driver, unit):
     except Exception:
         pass
 
-    print()
-    print("=" * 80)
-    print("DEBUG")
-
-    print(
-        "content-wrapper :",
-        len(driver.find_elements(By.CLASS_NAME, "content-wrapper"))
-    )
-
-    print(
-        "label-f :",
-        len(driver.find_elements(By.CLASS_NAME, "label-f"))
-    )
-
-    print(
-        "value-f :",
-        len(driver.find_elements(By.CLASS_NAME, "value-f"))
-    )
-
-    print("=" * 80)
-    print()
 
     # ==========================================================
     # 等待 Detail 完全加载（最多重试 5 次）
@@ -258,32 +227,33 @@ def load_details(driver, unit):
         unit.bathroom = m.group(1)
     
     
-def get_units(browser):
+def get_units(driver, phase, block):
     """
-    主流程
+    读取当前 Block 的所有 Unit
     """
-
-    driver = browser.driver
 
     print("=" * 60)
-    print("Scanning Units...")
+    print(f"Scanning Units ({phase} / {block})...")
     print("=" * 60)
 
-    units = scan_units(driver)
+    units = scan_units(driver, phase, block)
 
     print(f"发现 {len(units)} 个 Unit")
 
-    # 测试只抓第一间，验证成功后改成 units
     for i, unit in enumerate(units):
 
         print(f"[{i+1}/{len(units)}] {unit.unit}")
 
         for retry in range(3):
+
             try:
                 load_details(driver, unit)
                 break
+
             except Exception as e:
+
                 print(f"Retry {retry+1}: {e}")
+
                 time.sleep(1)
 
     return units
