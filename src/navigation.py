@@ -7,6 +7,7 @@ navigation.py
 - Sales Gallery
 - Live Sales
 """
+import time
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -117,26 +118,48 @@ def get_block_tabs(driver):
 
     tabs = driver.find_elements(
         By.CSS_SELECTOR,
-        "[role='tab']"
+        "div[role='tab']"
     )
 
-    print(f"Found {len(tabs)} tabs")
+    block_tabs = []
 
-    return tabs
+    for tab in tabs:
+
+        text = tab.text.strip()
+
+        if text.startswith("BLOCK"):
+            block_tabs.append(tab)
+
+    print(f"Found {len(block_tabs)} Blocks")
+
+    return block_tabs
 
 
-def switch_block(driver, tab):
+def switch_block(driver, block_name):
 
     print("=" * 60)
-    print(f"Switching to {tab.text}")
+    print(f"Switching Block -> {block_name}")
     print("=" * 60)
 
-    driver.execute_script(
-        "arguments[0].click();",
-        tab
-    )
+    tabs = get_block_tabs(driver)
 
-    print("Clicked.")
+    for tab in tabs:
+
+        if block_name in tab.text:
+
+            driver.execute_script(
+                "arguments[0].click();",
+                tab
+            )
+
+            print("Block clicked.")
+
+            # 等网页刷新
+            time.sleep(2)
+
+            return
+
+    raise Exception(f"Cannot find Block: {block_name}")
     
 
 def switch_project(driver, project_name):

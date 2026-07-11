@@ -3,6 +3,8 @@ from src.navigation import (
     ensure_landing,
     open_project,
     open_live_sales,
+    switch_block,
+    get_block_tabs,
 )
 from src.scraper import get_units
 
@@ -59,16 +61,32 @@ elif "/unit-live/" in url:
 
     print("Current State : Unit Live")
 
+    tabs = get_block_tabs(driver)
+
+    print()
+
+    all_units = []
+
     phase = "3B"
-    block = "C2-2"
 
-    units = get_units(
-        driver,
-        phase,
-        block
-    )
+    for tab in tabs:
 
-    print(f"\n完成，共 {len(units)} 个 Unit")
+        block = tab.text.replace("BLOCK", "").strip()
+
+        switch_block(driver, block)
+
+        units = get_units(
+            driver,
+            phase,
+            block
+        )
+
+        all_units.extend(units)
+
+    print()
+    print("=" * 60)
+    print(f"Total Units : {len(all_units)}")
+    print("=" * 60)
     
 
 # Unknown

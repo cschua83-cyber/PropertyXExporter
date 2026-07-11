@@ -47,8 +47,15 @@ def scan_units(driver, phase, block):
         "button"
     )
 
+    print(f"找到 Button 数量：{len(buttons)}")
+
     units = []
     current_level = ""
+
+    for i, b in enumerate(buttons[:20]):
+        print("-----")
+        print(i)
+        print(repr(b.text))
 
     for button in buttons:
 
