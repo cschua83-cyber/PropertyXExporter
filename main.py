@@ -3,6 +3,8 @@ from src.navigation import (
     ensure_landing,
     open_project,
     open_live_sales,
+    open_switch_project,
+    switch_phase,
     switch_block,
     get_block_tabs,
 )
@@ -26,7 +28,7 @@ if "workdesk.property-x.asia" in url:
 
     ensure_landing(driver)
 
-    open_project(driver, "Phase 3B")
+    open_project(driver, "Phase 3A")
 
     open_live_sales(driver)
 
@@ -37,7 +39,7 @@ elif "/dashboards/landing" in url:
 
     ensure_landing(driver)
 
-    open_project(driver, "Phase 3B")
+    open_project(driver, "Phase 3A")
 
     open_live_sales(driver)
 
@@ -53,8 +55,10 @@ elif "/dashboards/page-detail" in url:
 
     print("Current State : Page Detail")
 
-    open_live_sales(driver)
-    
+    switch_phase(driver, "Phase 3A")
+
+    input("检查 Header 有没有变成 Phase 3A，再按 Enter...")
+   
 
 # Unit Live
 elif "/unit-live/" in url:

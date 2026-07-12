@@ -7,12 +7,20 @@ navigation.py
 - Sales Gallery
 - Live Sales
 """
+
+# Python 内建模块
+import re
 import time
 
+# 第三方模块
+from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
+
+# 自己的模块
+from src.models import Unit
 
 
 def debug_tabs(driver):
@@ -34,6 +42,7 @@ def debug_tabs(driver):
         print(f"Tab {i}")
         print("Text :", e.text)
         print("Class:", e.get_attribute("class"))
+        
         
 def open_project_dialog(driver):
 
@@ -109,6 +118,91 @@ def open_live_sales(driver):
 
     print("=" * 60)
     
+    
+def open_switch_project(driver):
+
+    print("=" * 60)
+    print("Opening Switch Project...")
+    print("=" * 60)
+
+    button = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located(
+            (
+                By.CSS_SELECTOR,
+                "app-switch-project button"
+            )
+        )
+    )
+
+    driver.execute_script(
+        "arguments[0].click();",
+        button
+    )
+    
+    print(button.tag_name)
+    print(button.get_attribute("outerHTML"))
+    
+    print("Switch Project opened.")
+    
+
+def switch_phase(driver, phase_name):
+
+    print("=" * 60)
+    print(f"Switching Project -> {phase_name}")
+    print("=" * 60)
+
+    
+    open_switch_project(driver)
+    
+    time.sleep(2)
+
+    items = WebDriverWait(driver, 10).until(
+        EC.presence_of_all_elements_located(
+            (
+                By.CSS_SELECTOR,
+                "switch-project-dialog mat-list-item"
+            )
+        )
+    )
+
+    for i, item in enumerate(items):
+
+        print("-----")
+        print(i)
+        print(repr(item.text))
+
+        if phase_name in item.text:
+
+            print("准备点击：", item.text)
+
+            # 先滚动到可见
+            driver.execute_script(
+                "arguments[0].scrollIntoView({block:'center'});",
+                item
+            )
+
+            time.sleep(0.5)
+      
+            ActionChains(driver)\
+                .move_to_element(item)\
+                .pause(0.2)\
+                .click()\
+                .perform()
+
+            print("已经执行 ActionChains.click()")
+
+            print("Phase clicked.")
+            break
+
+    else:
+        raise Exception(f"Cannot find {phase_name}")
+
+    time.sleep(1)
+
+    print("Current URL:", driver.current_url)
+
+    print("Project switched.")
+        
 
 def get_block_tabs(driver):
 
