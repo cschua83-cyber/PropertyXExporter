@@ -55,9 +55,13 @@ elif "/dashboards/page-detail" in url:
 
     print("Current State : Page Detail")
 
+    print("STEP 1")
     switch_phase(driver, "Phase 3A")
 
-    input("检查 Header 有没有变成 Phase 3A，再按 Enter...")
+    print("STEP 2")
+    open_live_sales(driver)
+
+    print("STEP 3")
    
 
 # Unit Live
@@ -67,11 +71,9 @@ elif "/unit-live/" in url:
 
     tabs = get_block_tabs(driver)
 
-    print()
-
     all_units = []
 
-    phase = "3B"
+    phase = "3A"
 
     for tab in tabs:
 
@@ -91,12 +93,3 @@ elif "/unit-live/" in url:
     print("=" * 60)
     print(f"Total Units : {len(all_units)}")
     print("=" * 60)
-    
-
-# Unknown
-else:
-
-    print("Unknown Page")
-    print(driver.current_url)
-
-input("Press Enter...")
