@@ -22,69 +22,15 @@ from selenium.webdriver.common.keys import Keys
 
 # 自己的模块
 from src.models import Unit
-
-
-def debug_tabs(driver):
-
-    print("=" * 60)
-    print("Searching Tabs...")
-    print("=" * 60)
-
-    elements = driver.find_elements(
-        By.CSS_SELECTOR,
-        "[role='tab']"
-    )
-
-    print(f"Found {len(elements)} elements")
-
-    for i, e in enumerate(elements):
-
-        print("-" * 40)
-        print(f"Tab {i}")
-        print("Text :", e.text)
-        print("Class:", e.get_attribute("class"))
-        
-        
-def open_project_dialog(driver):
-
-    print("=" * 60)
-    print("Opening Switch Project...")
-    print("=" * 60)
-
-    button = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable(
-            (
-                By.CSS_SELECTOR,
-                "app-switch-project button"
-            )
-        )
-    )
-
-    ActionChains(driver)\
-        .move_to_element(button)\
-        .pause(0.2)\
-        .click()\
-        .perform()
     
-
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located(
-            (
-                By.CSS_SELECTOR,
-                "mat-dialog-container"
-            )
-        )
-    )
-
-    print("Switch Project dialog opened.")
-
-
+        
 def open_live_sales(driver):
 
     print("=" * 60)
     print("Opening Live Sales...")
     print("=" * 60)
-
+    
+    force_dismiss_subscription(driver)
 
     old_tab_count = len(driver.window_handles)
 
@@ -100,17 +46,128 @@ def open_live_sales(driver):
         )
     )
 
-    button.click()
+    print("=" * 60)
+    print("Before Click Live Sales")
+    print("=" * 60)
 
-    print("Live Sales Chart clicked.")
-
-    # 等待新 Tab 开启
-    WebDriverWait(driver, 10).until(
-        lambda d: len(d.window_handles) > old_tab_count
+    dialogs = driver.find_elements(
+        By.CSS_SELECTOR,
+        "mat-dialog-container"
     )
 
-    # 切换到最新 Tab
-    driver.switch_to.window(driver.window_handles[-1])
+    print("Container:", len(dialogs))
+
+    for i, d in enumerate(dialogs):
+
+        print("-----")
+        print(i)
+
+        print("Displayed:", d.is_displayed())
+
+        print("Text:")
+        print(repr(d.text))
+    
+
+    print("Dialog count:", len(dialogs))
+    
+    print("Subscription text count:",
+        driver.page_source.count("Subscription Expiring"))
+
+    for d in dialogs:
+        print("Displayed:", d.is_displayed())
+        print("Enabled:", d.is_enabled())
+        print("HTML:")
+        print(d.get_attribute("outerHTML"))
+
+    backdrops = driver.find_elements(
+        By.CSS_SELECTOR,
+        ".cdk-overlay-backdrop"
+    )
+
+    print("Backdrop count:", len(backdrops))
+
+    for i, b in enumerate(backdrops):
+        print("-----")
+        print(i)
+        print("Displayed:", b.is_displayed())
+        print("Class:", b.get_attribute("class"))
+        
+    print(driver.title)
+    print(driver.current_url)
+
+    print(
+        driver.execute_script(
+            "return document.visibilityState"
+        )
+    )
+
+    print(
+        driver.execute_script(
+            "return document.hasFocus()"
+        )
+    )
+
+    input("程序暂停，打开浏览器观察，然后按 Enter 继续...")
+    
+    driver.execute_script("""
+    window.dispatchEvent(new Event('focus'));
+    document.dispatchEvent(new Event('visibilitychange'));
+    """)
+    
+    time.sleep(1)
+
+    print(
+        "Animating:",
+        len(driver.find_elements(
+            By.CSS_SELECTOR,
+            ".ng-animating"
+        ))
+    )
+    
+    print("Current URL:", driver.current_url)
+
+    print("=" * 60)
+    print("Before JS Click")
+    print("=" * 60)
+
+    print(driver.execute_script("""
+    return {
+        visibility: document.visibilityState,
+        hidden: document.hidden,
+        focus: document.hasFocus()
+    }
+    """))
+
+    driver.execute_script("""
+    arguments[0].click();
+    """, button)
+
+    print("JS HTMLElement.click() Sent")
+
+    time.sleep(3)
+
+    print("Tabs:", len(driver.window_handles))
+
+    for h in driver.window_handles:
+        driver.switch_to.window(h)
+        print(driver.title)
+        print(driver.current_url)
+
+    # 等待新 Tab 开启
+    time.sleep(3)
+
+    print("Current URL:")
+    print(driver.current_url)
+
+    print("Tabs:")
+    print(len(driver.window_handles))
+
+    for h in driver.window_handles:
+
+        driver.switch_to.window(h)
+
+        print(driver.title)
+        print(driver.current_url)
 
     print("Switched to Live Sales")
 
@@ -333,66 +390,7 @@ def switch_block(driver, block_name):
 
     raise Exception(f"Cannot find Block: {block_name}")
     
-
-def switch_project(driver, project_name):
-
-    open_project_dialog(driver)
-
-    print("=" * 60)
-    print(f"Switch Project -> {project_name}")
-    print("=" * 60)
-
-    dialog = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located(
-            (
-                By.CSS_SELECTOR,
-                "mat-dialog-container"
-            )
-        )
-    )
-
-    projects = dialog.find_elements(
-        By.CSS_SELECTOR,
-        "mat-list-item"
-    )
-
-    for project in projects:
-
-        if project_name in project.text:
-
-            driver.execute_script(
-                "arguments[0].click();",
-                project
-            )
-
-            print("Project switched.")
-
-            return
-
-    raise Exception(f"Project '{project_name}' not found.")
     
-    
-def debug_projects(driver):
-
-    print("=" * 60)
-    print("Searching dialog...")
-    print("=" * 60)
-
-    dialogs = driver.find_elements(
-        By.CSS_SELECTOR,
-        "[role='dialog']"
-    )
-
-    print(f"Found {len(dialogs)} dialog(s)")
-
-    for i, dialog in enumerate(dialogs):
-
-        print("-" * 60)
-        print(f"Dialog {i}")
-
-        print("-" * 60)
-        
-
 def open_sales_crm(driver):
 
     print("=" * 60)
@@ -420,7 +418,7 @@ def open_sales_crm(driver):
     )
 
     print(driver.current_url)
-    
+        
     
 def open_project(driver, project_name):
 
@@ -445,40 +443,106 @@ def open_project(driver, project_name):
         project
     )
 
-    import time
-    time.sleep(3)
+    WebDriverWait(driver, 10).until(
+        lambda d: "/dashboards/project-summary" in d.current_url
+    )
 
-    print("After Click:")
+    print("Project Summary loaded")
     print(driver.current_url)
+
+    time.sleep(3)
     
-    
-def dismiss_subscription(driver):
+
+def open_sales_gallery(driver):
 
     print("=" * 60)
-    print("Checking Subscription Dialog...")
+    print("Opening Sales Gallery...")
     print("=" * 60)
 
-    try:
-
-        button = WebDriverWait(driver, 2).until(
-            EC.element_to_be_clickable(
-                (
-                    By.XPATH,
-                    "//button[contains(., 'Dismiss')]"
-                )
+    gallery = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable(
+            (
+                By.CSS_SELECTOR,
+                "mat-list-item[routerlink='/dashboards/page-detail']"
             )
         )
+    )
 
-        driver.execute_script(
-            "arguments[0].click();",
-            button
-        )
+    driver.execute_script(
+        "arguments[0].click();",
+        gallery
+    )
 
-        print("Subscription dialog dismissed.")
+    WebDriverWait(driver, 10).until(
+        lambda d: "/dashboards/page-detail" in d.current_url
+    )
 
-    except TimeoutException:
+    print(driver.current_url)
+        
+    
+# 👇 新增这里
+def force_dismiss_subscription(driver):
 
-        print("No subscription dialog.")
+    print("=" * 60)
+    print("Force Dismiss Dialog")
+    print("=" * 60)
+
+    dialogs = driver.find_elements(
+        By.CSS_SELECTOR,
+        "mat-dialog-container"
+    )
+
+    print("Dialog:", len(dialogs))
+
+    for dialog in dialogs:
+
+        html = dialog.get_attribute("outerHTML")
+
+        if "Subscription Expiring" not in html:
+            continue
+
+        print("Subscription dialog found")
+
+        try:
+
+            button = dialog.find_element(
+                By.XPATH,
+                ".//button[contains(., 'Dismiss')]"
+            )
+
+            driver.execute_script(
+                "arguments[0].click();",
+                button
+            )
+
+            print("Dismiss clicked")
+            
+            time.sleep(2)
+
+            print("After 2 seconds")
+
+            dialogs = driver.find_elements(
+                By.CSS_SELECTOR,
+                "mat-dialog-container"
+            )
+
+            print("Dialog:", len(dialogs))
+
+            print(
+                "Subscription:",
+                driver.page_source.count("Subscription Expiring")
+            )
+            
+            return True
+        
+
+        except Exception as e:
+
+            print(e)
+
+    print("No subscription dialog")
+
+    return False
         
         
 def ensure_landing(driver):
@@ -498,4 +562,4 @@ def ensure_landing(driver):
 
         print("Current page:", driver.current_url)
 
-    dismiss_subscription(driver)
+    # 不处理 Subscription Dialog

@@ -2,6 +2,7 @@ from src.browser import get_browser
 from src.navigation import (
     ensure_landing,
     open_project,
+    open_sales_gallery,
     open_live_sales,
     open_switch_project,
     switch_phase,
@@ -9,6 +10,8 @@ from src.navigation import (
     get_block_tabs,
 )
 from src.scraper import get_units
+from src.config import PROJECTS
+
 
 browser = get_browser()
 driver = browser.get_driver()
@@ -28,9 +31,18 @@ if "workdesk.property-x.asia" in url:
 
     ensure_landing(driver)
 
+    print("=" * 60)
+    print("Experiment: Stay on Landing")
+    print("=" * 60)
+
+    input("请等待15秒观察Landing有没有Dialog，再按Enter继续...")
+
     open_project(driver, "Phase 3A")
 
+    open_sales_gallery(driver)
+
     open_live_sales(driver)
+
 
 # Landing
 elif "/dashboards/landing" in url:
@@ -39,9 +51,18 @@ elif "/dashboards/landing" in url:
 
     ensure_landing(driver)
 
+    print("=" * 60)
+    print("Experiment: Stay on Landing")
+    print("=" * 60)
+
+    input("请等待15秒观察Landing有没有Dialog，再按Enter继续...")
+
     open_project(driver, "Phase 3A")
 
+    open_sales_gallery(driver)
+
     open_live_sales(driver)
+    
 
 # Project Summary
 elif "/dashboards/project-summary" in url:
