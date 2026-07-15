@@ -82,10 +82,6 @@ def scan_units(driver, phase, block):
             current_level = first
             continue
 
-        UNIT_PATTERN = re.compile(
-            r"^[A-Z]\d(?:-\d+)?-\d{2}-\d{2}$"
-)
-
         if not UNIT_PATTERN.match(first):
             continue
 

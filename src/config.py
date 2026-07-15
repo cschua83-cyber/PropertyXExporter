@@ -15,3 +15,10 @@ PROJECTS = {
         "C3-2",
     ],
 }
+
+
+PHASES = [
+    ("Phase 3A", "3A"),
+    ("Phase 3B", "3B"),
+    ("Phase 3C", "3C"),
+]

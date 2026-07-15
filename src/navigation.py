@@ -29,7 +29,7 @@ def open_live_sales(driver):
     print("=" * 60)
     print("Opening Live Sales...")
     print("=" * 60)
-    
+
     force_dismiss_subscription(driver)
 
     old_tab_count = len(driver.window_handles)
@@ -46,135 +46,22 @@ def open_live_sales(driver):
         )
     )
 
-    print("=" * 60)
-    print("Before Click Live Sales")
-    print("=" * 60)
-
-    dialogs = driver.find_elements(
-        By.CSS_SELECTOR,
-        "mat-dialog-container"
+    driver.execute_script(
+        "arguments[0].click();",
+        button
     )
 
-    print("Container:", len(dialogs))
-
-    for i, d in enumerate(dialogs):
-
-        print("-----")
-        print(i)
-
-        print("Displayed:", d.is_displayed())
-
-        print("Text:")
-        print(repr(d.text))
+    print("Live Sales opened.")
     
-
-    print("Dialog count:", len(dialogs))
     
-    print("Subscription text count:",
-        driver.page_source.count("Subscription Expiring"))
-
-    for d in dialogs:
-        print("Displayed:", d.is_displayed())
-        print("Enabled:", d.is_enabled())
-        print("HTML:")
-        print(d.get_attribute("outerHTML"))
-
-    backdrops = driver.find_elements(
-        By.CSS_SELECTOR,
-        ".cdk-overlay-backdrop"
+    WebDriverWait(driver, 10).until(
+        lambda d: len(d.window_handles) > old_tab_count
     )
 
-    print("Backdrop count:", len(backdrops))
-
-    for i, b in enumerate(backdrops):
-        print("-----")
-        print(i)
-        print("Displayed:", b.is_displayed())
-        print("Class:", b.get_attribute("class"))
-        
-    print(driver.title)
-    print(driver.current_url)
-
-    print(
-        driver.execute_script(
-            "return document.visibilityState"
-        )
-    )
-
-    print(
-        driver.execute_script(
-            "return document.hasFocus()"
-        )
-    )
-
-    input("程序暂停，打开浏览器观察，然后按 Enter 继续...")
-    
-    driver.execute_script("""
-    window.dispatchEvent(new Event('focus'));
-    document.dispatchEvent(new Event('visibilitychange'));
-    """)
-    
-    time.sleep(1)
-
-    print(
-        "Animating:",
-        len(driver.find_elements(
-            By.CSS_SELECTOR,
-            ".ng-animating"
-        ))
-    )
-    
-    print("Current URL:", driver.current_url)
-
-    print("=" * 60)
-    print("Before JS Click")
-    print("=" * 60)
-
-    print(driver.execute_script("""
-    return {
-        visibility: document.visibilityState,
-        hidden: document.hidden,
-        focus: document.hasFocus()
-    }
-    """))
-
-    driver.execute_script("""
-    arguments[0].click();
-    """, button)
-
-    print("JS HTMLElement.click() Sent")
-
-    time.sleep(3)
-
-    print("Tabs:", len(driver.window_handles))
-
-    for h in driver.window_handles:
-        driver.switch_to.window(h)
-        print(driver.title)
-        print(driver.current_url)
-
-    # 等待新 Tab 开启
-    time.sleep(3)
-
-    print("Current URL:")
-    print(driver.current_url)
-
-    print("Tabs:")
-    print(len(driver.window_handles))
-
-    for h in driver.window_handles:
-
-        driver.switch_to.window(h)
-
-        print(driver.title)
-        print(driver.current_url)
+    driver.switch_to.window(driver.window_handles[-1])
 
     print("Switched to Live Sales")
-
-    print(driver.title)
     print(driver.current_url)
-
-    print("=" * 60)
     
     
 def open_switch_project(driver):
@@ -241,8 +128,6 @@ def get_current_phase(driver):
 
     text = title.text.strip()
 
-    print("Current Project:", text)
-
     return text
 
 
@@ -262,14 +147,6 @@ def switch_phase(driver, phase_name):
         By.CSS_SELECTOR,
         "switch-project-dialog mat-list-item"
     )
-
-    print(f"Found {len(items)} items")
-
-    for i, item in enumerate(items):
-        print("-----")
-        print(i)
-        print(repr(item.text))
-
 
     found = False
 
@@ -322,10 +199,8 @@ def switch_phase(driver, phase_name):
 
         raise Exception(f"Cannot find {phase_name}")
     
-
-    print("Current URL:", driver.current_url)
-
     print("Project switched.")
+    
      
 def wait_overlay_disappear(driver):
 
@@ -435,9 +310,6 @@ def open_project(driver, project_name):
         )
     )
 
-    print("Before Click:")
-    print(driver.current_url)
-
     driver.execute_script(
         "arguments[0].click();",
         project
@@ -517,7 +389,14 @@ def force_dismiss_subscription(driver):
 
             print("Dismiss clicked")
             
-            time.sleep(2)
+            WebDriverWait(driver, 5).until(
+                EC.invisibility_of_element_located(
+                    (
+                        By.CSS_SELECTOR,
+                        "mat-dialog-container"
+                    )
+                )
+            )
 
             print("After 2 seconds")
 
@@ -563,3 +442,21 @@ def ensure_landing(driver):
         print("Current page:", driver.current_url)
 
     # 不处理 Subscription Dialog
+    
+    def test_phase_blocks(driver):
+
+        print("=" * 60)
+        print("Testing Phase 3B")
+        print("=" * 60)
+
+        # 切换到 Phase 3B
+        switch_phase(driver, "Phase 3B")
+
+        # 读取所有 Block
+        tabs = get_block_tabs(driver)
+
+        print(f"Found {len(tabs)} block(s)")
+
+        for i, tab in enumerate(tabs, start=1):
+
+            print(f"{i}. {tab.text}")
