@@ -16,6 +16,35 @@ from src.config import PROJECTS
 browser = get_browser()
 driver = browser.get_driver()
 
+browser = get_browser()
+driver = browser.get_driver()
+
+
+def export_current_phase(driver, phase_code):
+
+    tabs = get_block_tabs(driver)
+
+    all_units = []
+
+    for tab in tabs:
+
+        block = tab.text.replace("BLOCK", "").strip()
+
+        print(f"Processing {block}")
+
+        switch_block(driver, block)
+
+        units = get_units(
+            driver,
+            phase_code,
+            block
+        )
+
+        all_units.extend(units)
+
+    return all_units
+
+
 print("=" * 60)
 print("Current Page")
 print("=" * 60)
@@ -35,9 +64,7 @@ if "workdesk.property-x.asia" in url:
     print("Experiment: Stay on Landing")
     print("=" * 60)
 
-    input("请等待15秒观察Landing有没有Dialog，再按Enter继续...")
-
-    open_project(driver, "Phase 3A")
+    open_project(driver, "Phase 3B")
 
     open_sales_gallery(driver)
 
@@ -55,9 +82,7 @@ elif "/dashboards/landing" in url:
     print("Experiment: Stay on Landing")
     print("=" * 60)
 
-    input("请等待15秒观察Landing有没有Dialog，再按Enter继续...")
-
-    open_project(driver, "Phase 3A")
+    open_project(driver, "Phase 3B")
 
     open_sales_gallery(driver)
 
@@ -92,23 +117,10 @@ elif "/unit-live/" in url:
 
     tabs = get_block_tabs(driver)
 
-    all_units = []
-
-    phase = "3A"
-
-    for tab in tabs:
-
-        block = tab.text.replace("BLOCK", "").strip()
-
-        switch_block(driver, block)
-
-        units = get_units(
-            driver,
-            phase,
-            block
-        )
-
-        all_units.extend(units)
+    all_units = export_current_phase(
+        driver,
+        "3A"
+    )
 
     print()
     print("=" * 60)
