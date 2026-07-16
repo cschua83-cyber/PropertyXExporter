@@ -11,6 +11,7 @@ from src.navigation import (
 )
 from src.scraper import get_units
 from src.config import PROJECTS
+from src.exporter import export_to_excel
 
 
 browser = get_browser()
@@ -69,6 +70,33 @@ if "workdesk.property-x.asia" in url:
     open_sales_gallery(driver)
 
     open_live_sales(driver)
+    
+    tabs = get_block_tabs(driver)
+
+    all_units = []
+
+    phase = "3B"
+
+    for tab in tabs:
+
+        block = tab.text.replace("BLOCK", "").strip()
+
+        switch_block(driver, block)
+
+        units = get_units(
+            driver,
+            phase,
+            block
+        )
+
+        all_units.extend(units)
+
+    print()
+    print("=" * 60)
+    print(f"Total Units : {len(all_units)}")
+    print("=" * 60)
+
+    export_to_excel(all_units)
 
 
 # Landing

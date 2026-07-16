@@ -225,6 +225,17 @@ def get_block_tabs(driver):
         "div[role='tab']"
     )
 
+    print(f"Found {len(tabs)} tabs")
+
+    for i, tab in enumerate(tabs):
+
+        print("-" * 40)
+        print(i)
+        print("Text :", repr(tab.text))
+        print("Role :", tab.get_attribute("role"))
+        print("HTML :")
+        print(tab.get_attribute("outerHTML"))
+
     block_tabs = []
 
     for tab in tabs:

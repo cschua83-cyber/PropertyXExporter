@@ -32,7 +32,7 @@ def export_to_excel(units):
 
     ws.append(HEADERS)
     
-        for cell in ws[1]:
+    for cell in ws[1]:
         cell.font = Font(bold=True)
 
     for u in units:
@@ -55,11 +55,9 @@ def export_to_excel(units):
     for column in ws.columns:
 
         max_length = 0
-
         column_letter = column[0].column_letter
 
         for cell in column:
-
             try:
                 if len(str(cell.value)) > max_length:
                     max_length = len(str(cell.value))
