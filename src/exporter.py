@@ -1,3 +1,13 @@
+import os
+
+from openpyxl import Workbook
+from datetime import datetime
+from openpyxl.styles import (
+    Font,
+    PatternFill,
+    Alignment,
+)
+
 HEADERS = [
     "Phase",
     "Block",
@@ -12,11 +22,21 @@ HEADERS = [
     "Status"
 ]
 
-import os
+HEADER_FILL = PatternFill(
+    fill_type="solid",
+    start_color="1F4E78",
+    end_color="1F4E78"
+)
 
-from openpyxl import Workbook
-from datetime import datetime
-from openpyxl.styles import Font
+HEADER_FONT = Font(
+    bold=True,
+    color="FFFFFF"
+)
+
+HEADER_ALIGNMENT = Alignment(
+    horizontal="center",
+    vertical="center"
+)
 
 
 def export_to_excel(units):
@@ -33,7 +53,9 @@ def export_to_excel(units):
     ws.append(HEADERS)
     
     for cell in ws[1]:
-        cell.font = Font(bold=True)
+        cell.font = HEADER_FONT
+        cell.fill = HEADER_FILL
+        cell.alignment = HEADER_ALIGNMENT
 
     for u in units:
         ws.append([
@@ -49,6 +71,8 @@ def export_to_excel(units):
             u.carpark,
             u.status
         ])
+
+    ws.auto_filter.ref = ws.dimensions
 
     filename = f"output/Units_{datetime.now():%Y%m%d_%H%M%S}.xlsx"
     
