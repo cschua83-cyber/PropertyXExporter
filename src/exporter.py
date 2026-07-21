@@ -58,6 +58,8 @@ def export_to_excel(units):
         cell.alignment = HEADER_ALIGNMENT
 
     for u in units:
+        print(type(u.price), u.price)
+        
         ws.append([
             u.phase,
             u.block,
@@ -73,6 +75,11 @@ def export_to_excel(units):
         ])
 
     ws.auto_filter.ref = ws.dimensions
+    
+    ws.freeze_panes = "A2"
+
+    for cell in ws["E"][1:]:
+        cell.number_format = "#,##0"
 
     filename = f"output/Units_{datetime.now():%Y%m%d_%H%M%S}.xlsx"
     

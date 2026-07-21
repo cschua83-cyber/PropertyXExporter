@@ -109,7 +109,7 @@ def scan_units(driver, phase, block):
             )
 
             if price.isdigit():
-                u.price = price
+                u.price = int(price)
 
         units.append(u)
 
