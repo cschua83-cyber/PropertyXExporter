@@ -54,6 +54,8 @@ class Browser:
 
                 return True
             
+        raise Exception("Cannot find PropertyX tab.")
+            
     
     def get_driver(self):
         return self.driver

@@ -6,8 +6,16 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
 from src.models import Unit
+from config import (
+    WAIT_TIMEOUT,
+    DETAIL_MAX_RETRY,
+    DETAIL_RETRY_DELAY,
+    SCROLL_DELAY,
+    DETAIL_OPEN_DELAY,
+    DETAIL_CLOSE_DELAY,
+)
+
 
 UNIT_PATTERN = re.compile(
     r"^[A-Z]\d(?:-\d+)?-\d{2}-\d{2}$"
@@ -115,7 +123,7 @@ def load_details(driver, unit):
 
     xpath = f"//button[contains(.,'{unit.unit}')]"
 
-    button = WebDriverWait(driver, 10).until(
+    button = WebDriverWait(driver, WAIT_TIMEOUT).until(
         EC.presence_of_element_located((By.XPATH, xpath))
     )
 
@@ -125,7 +133,7 @@ def load_details(driver, unit):
     )
 
 
-    time.sleep(2)
+    time.sleep(SCROLL_DELAY)
     
     old = ""
 
@@ -143,12 +151,12 @@ def load_details(driver, unit):
        button
    )
     
-    time.sleep(1)
+    time.sleep(DETAIL_OPEN_DELAY)
     
    
 
     try:
-        WebDriverWait(driver, 10).until(
+        WebDriverWait(driver, WAIT_TIMEOUT).until(
             lambda d: d.find_element(
                 By.XPATH,
                 "//div[text()='Unit']/following-sibling::div"
@@ -163,7 +171,7 @@ def load_details(driver, unit):
     # ==========================================================
     detail = {}
 
-    for attempt in range(5):
+    for attempt in range(DETAIL_MAX_RETRY):
 
         detail = read_details(driver)
 
@@ -173,7 +181,7 @@ def load_details(driver, unit):
 
         print(f"Detail 尚未加载完成，等待中... ({attempt+1}/5)")
 
-        time.sleep(0.5)
+        time.sleep(DETAIL_RETRY_DELAY)
 
     print("\n" + "=" * 70)
     print(f"读取：{unit.unit}")
@@ -207,17 +215,17 @@ def load_details(driver, unit):
         "body"
     ).send_keys(Keys.ESCAPE)
     
-    WebDriverWait(driver, 10).until(
+    WebDriverWait(driver, WAIT_TIMEOUT).until(
     EC.invisibility_of_element_located(
         (By.CLASS_NAME, "cdk-overlay-backdrop")
     )
 )
 
-    time.sleep(1.5)
+    time.sleep(DETAIL_CLOSE_DELAY)
 
     print("Dialog 已关闭")
 
-    WebDriverWait(driver, 5).until(
+    WebDriverWait(driver, DETAIL_MAX_RETRY).until(
         EC.invisibility_of_element_located(
             (By.CLASS_NAME, "cdk-overlay-backdrop")
         )
@@ -241,11 +249,15 @@ def get_units(driver, phase, block):
 
     units = scan_units(driver, phase, block)
 
+    failed_units = []
+
     print(f"发现 {len(units)} 个 Unit")
 
     for i, unit in enumerate(units):
 
         print(f"[{i+1}/{len(units)}] {unit.unit}")
+
+        success = False
 
         for retry in range(3):
 
@@ -257,6 +269,26 @@ def get_units(driver, phase, block):
 
                 print(f"Retry {retry+1}: {e}")
 
-                time.sleep(1)
+                time.sleep(DETAIL_OPEN_DELAY)
+
+                # 第三次还是失败
+                if retry == 2:
+                    failed_units.append(unit.unit)
+
+    print()
+    print("=" * 60)
+    print("Export Summary")
+    print("=" * 60)
+
+    print(f"Total Units : {len(units)}")
+    print(f"Failed      : {len(failed_units)}")
+
+    if failed_units:
+
+        print()
+        print("Failed Units:")
+
+        for unit in failed_units:
+            print(f"- {unit}")
 
     return units

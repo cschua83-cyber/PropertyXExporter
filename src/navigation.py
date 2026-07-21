@@ -9,7 +9,6 @@ navigation.py
 """
 
 # Python 内建模块
-import re
 import time
 
 # 第三方模块
@@ -19,10 +18,15 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.keys import Keys
+from config import (
+    WAIT_TIMEOUT,
+    DETAIL_MAX_RETRY,
+    DETAIL_RETRY_DELAY,
+    SCROLL_DELAY,
+    DETAIL_OPEN_DELAY,
+    DETAIL_CLOSE_DELAY,
+)
 
-# 自己的模块
-from src.models import Unit
-    
         
 def open_live_sales(driver):
 
@@ -36,7 +40,7 @@ def open_live_sales(driver):
 
     button = WebDriverWait(
         driver,
-        10
+        WAIT_TIMEOUT
     ).until(
         EC.element_to_be_clickable(
             (
@@ -54,13 +58,60 @@ def open_live_sales(driver):
     print("Live Sales opened.")
     
     
-    WebDriverWait(driver, 10).until(
+    WebDriverWait(driver, WAIT_TIMEOUT).until(
         lambda d: len(d.window_handles) > old_tab_count
     )
 
-    driver.switch_to.window(driver.window_handles[-1])
+    new_tab = driver.window_handles[-1]
+
+    driver.switch_to.window(new_tab)
 
     print("Switched to Live Sales")
+    print(driver.current_url)
+
+    return new_tab
+    
+
+def wait_for_blocks(driver):
+
+    print("=" * 60)
+    print("Waiting for Block Tabs...")
+    print("=" * 60)
+
+    for i in range(20):
+
+        tabs = driver.find_elements(
+            By.CSS_SELECTOR,
+            "div[role='tab']"
+        )
+
+        texts = [t.text.strip() for t in tabs if t.text.strip()]
+
+        print(texts)
+
+        if any(t.startswith("BLOCK") for t in texts):
+            print("✅ Block Tabs Ready")
+            return
+
+        time.sleep(DETAIL_OPEN_DELAY)
+
+    raise Exception("Block Tabs did not appear.")
+    
+
+def close_live_sales(driver):
+
+    print("=" * 60)
+    print("Closing Live Sales...")
+    print("=" * 60)
+
+    driver.close()
+
+    driver.switch_to.window(
+        driver.window_handles[0]
+    )
+
+    print("Back to:")
+    print(driver.title)
     print(driver.current_url)
     
     
@@ -104,7 +155,7 @@ def open_switch_project(driver):
         .perform()
 
     # 等待 Dialog 出现
-    WebDriverWait(driver, 10).until(
+    WebDriverWait(driver, WAIT_TIMEOUT).until(
         EC.visibility_of_element_located(
             (
                 By.CSS_SELECTOR,
@@ -117,7 +168,7 @@ def open_switch_project(driver):
     
 def get_current_phase(driver):
 
-    title = WebDriverWait(driver, 10).until(
+    title = WebDriverWait(driver, WAIT_TIMEOUT).until(
         EC.presence_of_element_located(
             (
                 By.CSS_SELECTOR,
@@ -132,7 +183,7 @@ def get_current_phase(driver):
 
 
 def switch_phase(driver, phase_name):
-
+    
     print("=" * 60)
     print(f"Switching Project -> {phase_name}")
     print("=" * 60)
@@ -141,7 +192,7 @@ def switch_phase(driver, phase_name):
     open_switch_project(driver)
 
     # 等 Dialog 完全加载
-    time.sleep(1)
+    time.sleep(DETAIL_OPEN_DELAY)
 
     items = driver.find_elements(
         By.CSS_SELECTOR,
@@ -163,7 +214,7 @@ def switch_phase(driver, phase_name):
                 item
             )
 
-            time.sleep(0.5)
+            time.sleep(DETAIL_RETRY_DELAY)
 
             ActionChains(driver)\
                 .move_to_element(item)\
@@ -201,10 +252,14 @@ def switch_phase(driver, phase_name):
     
     print("Project switched.")
     
+    time.sleep(3)
+
+    print(driver.current_url)
+    
      
 def wait_overlay_disappear(driver):
 
-    WebDriverWait(driver, 10).until(
+    WebDriverWait(driver, WAIT_TIMEOUT).until(
         EC.invisibility_of_element_located(
             (
                 By.CSS_SELECTOR,
@@ -270,7 +325,7 @@ def switch_block(driver, block_name):
             print("Block clicked.")
 
             # 等网页刷新
-            time.sleep(2)
+            time.sleep(SCROLL_DELAY)
 
             return
 
@@ -283,7 +338,7 @@ def open_sales_crm(driver):
     print("Opening Sales CRM...")
     print("=" * 60)
 
-    sales_crm = WebDriverWait(driver, 10).until(
+    sales_crm = WebDriverWait(driver, WAIT_TIMEOUT).until(
         EC.element_to_be_clickable(
             (
                 By.XPATH,
@@ -299,24 +354,24 @@ def open_sales_crm(driver):
 
     print("Sales CRM clicked.")
 
-    WebDriverWait(driver, 10).until(
+    WebDriverWait(driver, WAIT_TIMEOUT).until(
         lambda d: "sales.property-x.asia" in d.current_url
     )
 
     print(driver.current_url)
         
     
-def open_project(driver, project_name):
+def open_project(driver, phase):
 
     print("=" * 60)
-    print(f"Opening Project: {project_name}")
+    print(f"Opening Project: {phase.name}")
     print("=" * 60)
 
-    project = WebDriverWait(driver, 10).until(
+    project = WebDriverWait(driver, WAIT_TIMEOUT).until(
         EC.presence_of_element_located(
             (
                 By.XPATH,
-                f"//div[contains(@class,'mat-line') and contains(.,'{project_name}')]"
+                f"//div[contains(@class,'mat-line') and contains(.,'{phase.name}')]"
             )
         )
     )
@@ -326,7 +381,7 @@ def open_project(driver, project_name):
         project
     )
 
-    WebDriverWait(driver, 10).until(
+    WebDriverWait(driver, WAIT_TIMEOUT).until(
         lambda d: "/dashboards/project-summary" in d.current_url
     )
 
@@ -342,7 +397,7 @@ def open_sales_gallery(driver):
     print("Opening Sales Gallery...")
     print("=" * 60)
 
-    gallery = WebDriverWait(driver, 10).until(
+    gallery = WebDriverWait(driver, WAIT_TIMEOUT).until(
         EC.element_to_be_clickable(
             (
                 By.CSS_SELECTOR,
@@ -356,7 +411,7 @@ def open_sales_gallery(driver):
         gallery
     )
 
-    WebDriverWait(driver, 10).until(
+    WebDriverWait(driver, WAIT_TIMEOUT).until(
         lambda d: "/dashboards/page-detail" in d.current_url
     )
 
@@ -400,7 +455,7 @@ def force_dismiss_subscription(driver):
 
             print("Dismiss clicked")
             
-            WebDriverWait(driver, 5).until(
+            WebDriverWait(driver, DETAIL_MAX_RETRY).until(
                 EC.invisibility_of_element_located(
                     (
                         By.CSS_SELECTOR,
@@ -452,22 +507,4 @@ def ensure_landing(driver):
 
         print("Current page:", driver.current_url)
 
-    # 不处理 Subscription Dialog
     
-    def test_phase_blocks(driver):
-
-        print("=" * 60)
-        print("Testing Phase 3B")
-        print("=" * 60)
-
-        # 切换到 Phase 3B
-        switch_phase(driver, "Phase 3B")
-
-        # 读取所有 Block
-        tabs = get_block_tabs(driver)
-
-        print(f"Found {len(tabs)} block(s)")
-
-        for i, tab in enumerate(tabs, start=1):
-
-            print(f"{i}. {tab.text}")

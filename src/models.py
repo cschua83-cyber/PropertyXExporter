@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 
-
 @dataclass
 class Unit:
 
@@ -22,3 +21,11 @@ class Unit:
 
     status: str = ""
     remarks: str = ""
+    
+    
+@dataclass
+class Phase:
+
+    name: str
+    code: str
+    blocks: list[str]
