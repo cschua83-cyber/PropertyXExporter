@@ -196,7 +196,21 @@ def load_details(driver, unit):
     print("=" * 70)
 
     # 映射到现有 models.py
-    unit.size = detail.get("Built-up", "")
+    
+    size_text = detail.get("Built-up", "")
+
+    size_text = (
+        size_text
+        .replace("sq.ft", "")
+        .replace("sq ft", "")
+        .strip()
+    )
+
+    if size_text.isdigit():
+        unit.size = int(size_text)
+    else:
+        unit.size = None
+
     unit.orientation = detail.get("Direction", "")
     unit.carpark = detail.get("Car Park", "")
     unit.status = detail.get("Status", "")

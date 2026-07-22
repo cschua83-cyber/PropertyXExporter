@@ -33,7 +33,7 @@ HEADER_FONT = Font(
     color="FFFFFF"
 )
 
-HEADER_ALIGNMENT = Alignment(
+CENTER_ALIGNMENT = Alignment(
     horizontal="center",
     vertical="center"
 )
@@ -55,10 +55,10 @@ def export_to_excel(units):
     for cell in ws[1]:
         cell.font = HEADER_FONT
         cell.fill = HEADER_FILL
-        cell.alignment = HEADER_ALIGNMENT
-
+        
+        
     for u in units:
-        print(type(u.price), u.price)
+        print(type(u.size), u.size)
         
         ws.append([
             u.phase,
@@ -77,9 +77,13 @@ def export_to_excel(units):
     ws.auto_filter.ref = ws.dimensions
     
     ws.freeze_panes = "A2"
+    
+    for row in ws.iter_rows():
+        for cell in row:
+            cell.alignment = CENTER_ALIGNMENT
 
     for cell in ws["E"][1:]:
-        cell.number_format = "#,##0"
+        cell.number_format = '#,##0;-#,##0'
 
     filename = f"output/Units_{datetime.now():%Y%m%d_%H%M%S}.xlsx"
     
