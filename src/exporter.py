@@ -11,15 +11,16 @@ from openpyxl.styles import (
 HEADERS = [
     "Phase",
     "Block",
-    "Level",
     "Unit",
-    "Price",
     "Bedroom",
     "Bathroom",
     "Built-up",
+    "List Price\nRM",
+    "SPA Price\nRM",
+    "Net Price\nRM",
+    "PSF\nRM",
     "Direction",
     "Car Park",
-    "Status"
 ]
 
 HEADER_FILL = PatternFill(
@@ -35,58 +36,42 @@ HEADER_FONT = Font(
 
 CENTER_ALIGNMENT = Alignment(
     horizontal="center",
-    vertical="center"
+    vertical="center",
+    wrap_text=True
 )
 
+def format_header(ws):
 
-def export_to_excel(units):
-    
-    os.makedirs(
-    "output",
-    exist_ok=True
-    )
-
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "Units"
-
-    ws.append(HEADERS)
-    
     for cell in ws[1]:
         cell.font = HEADER_FONT
         cell.fill = HEADER_FILL
-        
-        
-    for u in units:
-        print(type(u.size), u.size)
-        
-        ws.append([
-            u.phase,
-            u.block,
-            u.level,
-            u.unit,
-            u.price,
-            u.bedroom,
-            u.bathroom,
-            u.size,
-            u.orientation,
-            u.carpark,
-            u.status
-        ])
+
+    ws.row_dimensions[1].height = 35
+    
+
+def format_sheet(ws):
 
     ws.auto_filter.ref = ws.dimensions
-    
+
     ws.freeze_panes = "A2"
-    
+
     for row in ws.iter_rows():
         for cell in row:
             cell.alignment = CENTER_ALIGNMENT
+            
 
-    for cell in ws["E"][1:]:
-        cell.number_format = '#,##0;-#,##0'
+def format_numbers(ws):
 
-    filename = f"output/Units_{datetime.now():%Y%m%d_%H%M%S}.xlsx"
-    
+    for column in ["G", "H", "I"]:
+        for cell in ws[column][1:]:
+            cell.number_format = '#,##0;-#,##0'
+
+    for cell in ws["J"][1:]:
+        cell.number_format = '#,##0'
+        
+
+def auto_fit_columns(ws):
+
     for column in ws.columns:
 
         max_length = 0
@@ -100,6 +85,64 @@ def export_to_excel(units):
                 pass
 
         ws.column_dimensions[column_letter].width = max_length + 2
+
+
+def auto_fit_columns(ws):
+
+    for column in ws.columns:
+
+        max_length = 0
+        column_letter = column[0].column_letter
+
+        for cell in column:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+
+        ws.column_dimensions[column_letter].width = max_length + 2
+            
+
+def export_to_excel(units):
+    
+    os.makedirs(
+    "output",
+    exist_ok=True
+    )
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Units"
+
+    ws.append(HEADERS)
+
+    format_header(ws)    
+        
+    for u in units:
+         
+        ws.append([
+            u.phase,
+            u.block,
+            u.unit,
+            u.bedroom,
+            u.bathroom,
+            u.size,
+            u.list_price,      
+            u.spa_price,
+            u.net_price,
+            u.psf,
+            u.orientation,
+            u.carpark,
+        ])
+
+    format_sheet(ws)
+
+    format_numbers(ws)
+
+    filename = f"output/Units_{datetime.now():%Y%m%d_%H%M%S}.xlsx"
+    
+    auto_fit_columns(ws)
 
     wb.save(filename)
 

@@ -8,10 +8,14 @@ class Unit:
     level: str = ""
     unit: str = ""
 
-    price: str = ""
+    list_price: int | None = None
+    
+    spa_price: int | None = None
+    net_price: int | None = None
 
     type: str = ""
-    size: str = ""
+    size: int | None = None
+    psf: int | None = None
 
     bedroom: str = ""
     bathroom: str = ""

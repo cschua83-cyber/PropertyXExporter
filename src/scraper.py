@@ -1,6 +1,7 @@
 
 import re
 import time
+from src.pricing import calculate_prices
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -14,6 +15,12 @@ from config import (
     SCROLL_DELAY,
     DETAIL_OPEN_DELAY,
     DETAIL_CLOSE_DELAY,
+
+    STANDARD_DISCOUNT,
+    EARLY_BIRD_DISCOUNT,
+    MOT_DISCOUNT,
+    SPA_ROUNDING,
+    PROGRESSIVE_DISCOUNT,
 )
 
 
@@ -109,7 +116,7 @@ def scan_units(driver, phase, block):
             )
 
             if price.isdigit():
-                u.price = int(price)
+                u.list_price = int(price)
 
         units.append(u)
 
@@ -118,7 +125,7 @@ def scan_units(driver, phase, block):
 
 def load_details(driver, unit):
     """
-    点击 Unit，并读取右侧 Detail
+    点击 Unit，并读取右侧 Detail    
     """
 
     xpath = f"//button[contains(.,'{unit.unit}')]"
@@ -210,7 +217,9 @@ def load_details(driver, unit):
         unit.size = int(size_text)
     else:
         unit.size = None
-
+    
+    calculate_prices(unit)
+    
     unit.orientation = detail.get("Direction", "")
     unit.carpark = detail.get("Car Park", "")
     unit.status = detail.get("Status", "")

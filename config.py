@@ -1,5 +1,28 @@
 from src.models import Phase
 
+# ==========================================================
+# Pricing Rules
+# ==========================================================
+
+# ==========================================================
+# Pricing Rules
+# ==========================================================
+
+# Standard Discount (5%)
+STANDARD_DISCOUNT = 0.95
+
+# Early Bird Discount (8%)
+EARLY_BIRD_DISCOUNT = 0.92
+
+# Free MOT Discount (8%)
+MOT_DISCOUNT = 0.92
+
+# SPA Price rounding (nearest RM1,000)
+SPA_ROUNDING = -3
+
+# Progressive Payment Discount (5%)
+PROGRESSIVE_DISCOUNT = 0.95
+
 
 PHASE_3A = Phase(
     name="Phase 3A",
